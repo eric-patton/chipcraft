@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ChipCraft.Cli/ChipCraft.Cli.csproj" />
+    <Project Path="src/ChipCraft.Engine/ChipCraft.Engine.csproj" />
+    <Project Path="src/ChipCraft.Mcp/ChipCraft.Mcp.csproj" />
+    <Project Path="src/ChipCraft.Renderer.Wpf/ChipCraft.Renderer.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ChipCraft.Engine.Tests/ChipCraft.Engine.Tests.csproj" />
+    <Project Path="tests/ChipCraft.Mcp.Tests/ChipCraft.Mcp.Tests.csproj" />
+  </Folder>
+</Solution>

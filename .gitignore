@@ -1,0 +1,58 @@
+## Local agent tooling config (machine-specific absolute paths)
+.claude/settings.local.json
+.codex/
+
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.nupkg
+*.snupkg
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+publish/
+publish2/
+
+## NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## Test results
+[Tt]est[Rr]esult*/
+*.trx
+
+## IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Audio output (generated files)
+output/
+*.wav
+*.mp3
+*.ogg
+!tests/**/*.wav
+
+## Third-party audio assets. SoundFonts carry their own redistribution terms and are
+## several GB besides, so they are downloaded rather than committed. See soundfonts/README.md.
+soundfonts/*
+!soundfonts/README.md
+
+## Copyrighted reference material used only for local transcription testing. Never publish.
+sheet-music-samples/
+
+## Generated demo audio and MIDI
+sample-outputs/

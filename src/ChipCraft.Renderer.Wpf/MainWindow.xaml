@@ -1,0 +1,376 @@
+<Window x:Class="ChipCraft.Renderer.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChipCraft.Renderer.Wpf"
+        mc:Ignorable="d"
+        Title="ChipCraft Audio Renderer"
+        Width="860"
+        Height="700"
+        MinWidth="760"
+        MinHeight="620"
+        Loaded="Window_Loaded"
+        WindowStartupLocation="CenterScreen"
+        Background="#11161C">
+    <Window.Resources>
+        <DataTemplate x:Key="AssetOptionTemplate" DataType="{x:Type local:AssetOption}">
+            <StackPanel>
+                <TextBlock Foreground="#F3F6FA" Text="{Binding DisplayName}" />
+                <TextBlock FontSize="11" Foreground="#8E9AAD" Text="{Binding LocationHint}" />
+            </StackPanel>
+        </DataTemplate>
+        <Style x:Key="DarkComboBoxItemStyle" TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#0F141A" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#243140" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#35506B" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.6" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DarkComboBoxStyle" TargetType="{x:Type ComboBox}">
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="Background" Value="#0F141A" />
+            <Setter Property="BorderBrush" Value="#344154" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItemStyle}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ComboBox}">
+                        <Grid>
+                            <Border x:Name="ClosedBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="42" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter Grid.Column="0"
+                                                      Margin="10,6,8,6"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalAlignment="Left"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                                      RecognizesAccessKey="True" />
+
+                                    <ToggleButton Grid.Column="1"
+                                                  Focusable="False"
+                                                  Background="#16202B"
+                                                  BorderBrush="#344154"
+                                                  BorderThickness="1,0,0,0"
+                                                  ClickMode="Press"
+                                                  IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                <Border x:Name="ArrowBorder"
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                                    <Path Width="10"
+                                                          Height="6"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Fill="#F3F6FA"
+                                                          Data="M 0 0 L 10 0 L 5 6 Z" />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ArrowBorder" Property="Background" Value="#223041" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="ArrowBorder" Property="Background" Value="#2A3D53" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
+                                </Grid>
+                            </Border>
+
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   PopupAnimation="Slide">
+                                <Border x:Name="DropDownBorder"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                        Margin="0,4,0,0"
+                                        Background="#0F141A"
+                                        BorderBrush="#344154"
+                                        BorderThickness="1">
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ClosedBorder" Property="Opacity" Value="0.6" />
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="ClosedBorder" Property="BorderBrush" Value="#4E6480" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#0F141A" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#0F141A" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightBrushKey}" Color="#16202B" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#F3F6FA" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="#8E9AAD" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#35506B" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#F3F6FA" />
+            </Style.Resources>
+        </Style>
+    </Window.Resources>
+
+    <Border Padding="24" Background="#11161C">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="20" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="20" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="#F3F6FA"
+                               Text="Render MIDI To Audio" />
+                    <TextBlock Margin="0,8,0,0"
+                               Foreground="#A9B4C2"
+                               TextWrapping="Wrap"
+                               Text="Search the scanned MIDI and SoundFont libraries, or browse to an external file manually, then render a playable audio file." />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        VerticalAlignment="Top"
+                        Padding="18,8"
+                        Click="RefreshLibraries_Click"
+                        IsEnabled="{Binding CanRefreshLibraries}"
+                        Content="{Binding RefreshButtonText}" />
+            </Grid>
+
+            <Border Grid.Row="2"
+                    CornerRadius="18"
+                    Background="#1A212B"
+                    BorderBrush="#293241"
+                    BorderThickness="1"
+                    Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Grid.ColumnSpan="3"
+                               Foreground="#DCE3EA"
+                               FontWeight="SemiBold"
+                               Text="{Binding MidiLibraryHint}" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="0"
+                             Margin="0,8,0,0"
+                             Padding="10,8"
+                             Background="#0F141A"
+                             BorderBrush="#344154"
+                             BorderThickness="1"
+                             Foreground="#F3F6FA"
+                             Text="{Binding MidiSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Row="1"
+                            Grid.Column="2"
+                            Margin="0,8,0,0"
+                            Padding="18,8"
+                            Click="BrowseMidi_Click"
+                            Content="Browse MIDI" />
+                    <ComboBox Grid.Row="2"
+                              Grid.ColumnSpan="3"
+                              Margin="0,8,0,0"
+                              Style="{StaticResource DarkComboBoxStyle}"
+                              ItemTemplate="{StaticResource AssetOptionTemplate}"
+                              ItemsSource="{Binding FilteredMidiFiles}"
+                              SelectedItem="{Binding SelectedMidiOption}" />
+                    <TextBlock Grid.Row="3"
+                               Grid.ColumnSpan="3"
+                               Margin="0,8,0,0"
+                               Foreground="#8E9AAD"
+                               TextWrapping="Wrap"
+                               Text="{Binding MidiPath}" />
+
+                    <TextBlock Grid.Row="5"
+                               Grid.ColumnSpan="3"
+                               Foreground="#DCE3EA"
+                               FontWeight="SemiBold"
+                               Text="{Binding SoundFontLibraryHint}" />
+                    <TextBox Grid.Row="6"
+                             Grid.Column="0"
+                             Margin="0,8,0,0"
+                             Padding="10,8"
+                             Background="#0F141A"
+                             BorderBrush="#344154"
+                             BorderThickness="1"
+                             Foreground="#F3F6FA"
+                             Text="{Binding SoundFontSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Row="6"
+                            Grid.Column="2"
+                            Margin="0,8,0,0"
+                            Padding="18,8"
+                            Click="BrowseSoundFont_Click"
+                            Content="Browse SoundFont" />
+                    <ComboBox Grid.Row="7"
+                              Grid.ColumnSpan="3"
+                              Margin="0,8,0,0"
+                              Style="{StaticResource DarkComboBoxStyle}"
+                              ItemTemplate="{StaticResource AssetOptionTemplate}"
+                              ItemsSource="{Binding FilteredSoundFonts}"
+                              SelectedItem="{Binding SelectedSoundFontOption}" />
+                    <TextBlock Grid.Row="8"
+                               Grid.ColumnSpan="3"
+                               Margin="0,8,0,0"
+                               Foreground="#8E9AAD"
+                               TextWrapping="Wrap"
+                               Text="{Binding SoundFontPath}" />
+
+                    <TextBlock Grid.Row="10"
+                               Grid.ColumnSpan="3"
+                               Foreground="#DCE3EA"
+                               FontWeight="SemiBold"
+                               Text="Output File" />
+                    <TextBox Grid.Row="11"
+                             Grid.Column="0"
+                             Margin="0,8,0,0"
+                             Padding="10,8"
+                             Background="#0F141A"
+                             BorderBrush="#344154"
+                             BorderThickness="1"
+                             Foreground="#F3F6FA"
+                             Text="{Binding OutputPath, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Row="11"
+                            Grid.Column="2"
+                            Margin="0,8,0,0"
+                            Padding="18,8"
+                            Click="BrowseOutput_Click"
+                            Content="Choose Output" />
+
+                    <TextBlock Grid.Row="13"
+                               Grid.ColumnSpan="3"
+                               Foreground="#DCE3EA"
+                               FontWeight="SemiBold"
+                               Text="Format And Sample Rate" />
+                    <Grid Grid.Row="14" Grid.ColumnSpan="3" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0"
+                                  Style="{StaticResource DarkComboBoxStyle}"
+                                  ItemsSource="{Binding Formats}"
+                                  SelectedItem="{Binding SelectedFormat}" />
+                        <ComboBox Grid.Column="2"
+                                  Style="{StaticResource DarkComboBoxStyle}"
+                                  ItemsSource="{Binding SampleRates}"
+                                  SelectedItem="{Binding SelectedSampleRate}" />
+                    </Grid>
+
+                    <Border Grid.Row="15"
+                            Grid.ColumnSpan="3"
+                            Margin="0,16,0,0"
+                            Background="#121821"
+                            BorderBrush="#293241"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="14">
+                        <StackPanel>
+                            <TextBlock Foreground="#A9B4C2"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding LibrarySummary}" />
+                            <TextBlock Margin="0,8,0,0"
+                                       Foreground="#A9B4C2"
+                                       TextWrapping="Wrap"
+                                       Text="WAV is direct render output. MP3 first renders to a temporary WAV and then transcodes it." />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="{Binding StatusBrush}"
+                           Text="{Binding StatusText}" />
+
+                <Button Grid.Column="1"
+                        Padding="22,10"
+                        FontWeight="SemiBold"
+                        IsEnabled="{Binding CanRender}"
+                        Click="Render_Click"
+                        Content="{Binding RenderButtonText}" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
